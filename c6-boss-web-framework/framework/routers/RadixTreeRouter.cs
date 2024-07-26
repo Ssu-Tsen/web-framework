@@ -2,20 +2,20 @@ using System.Net;
 using c6_boss_web_framework.framework.exceptions;
 using c6_boss_web_framework.framework.requests;
 
-namespace c6_boss_web_framework.app.data_structure;
+namespace c6_boss_web_framework.framework.routers;
 
 public class RadixTreeNode(string edgeLabel = "", bool isPathVariable = false)
 {
-    public string EdgeLabel { get; set; } = edgeLabel;
-    public Dictionary<string, RadixTreeNode> Children { get; set; } = new();
+    public string EdgeLabel { get; } = edgeLabel;
+    public Dictionary<string, RadixTreeNode> Children { get; } = new();
 
     public Dictionary<string, Func<HttpListenerRequest, Dictionary<string, string>, Task<IResponseEntity>>>
-        Handlers { get; set; } = new(); // Key: HTTP Method, Value: Handler
+        Handlers { get; } = new(); // Key: HTTP Method, Value: Handler
 
-    public bool IsPathVariable { get; set; } = isPathVariable;
+    public bool IsPathVariable { get; } = isPathVariable;
 }
 
-public class RadixTree
+public class RadixTreeRouter : IRouter
 {
     private readonly RadixTreeNode _root = new();
     private static readonly char[] Separator = ['/'];

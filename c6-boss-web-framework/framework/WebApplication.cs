@@ -1,11 +1,11 @@
 using System.Net;
 using System.Text;
-using c6_boss_web_framework.app.data_structure;
 using c6_boss_web_framework.framework.exception_handlers;
 using c6_boss_web_framework.framework.exceptions;
 using c6_boss_web_framework.framework.http_body_serializers;
 using c6_boss_web_framework.framework.ioc;
 using c6_boss_web_framework.framework.requests;
+using c6_boss_web_framework.framework.routers;
 
 namespace c6_boss_web_framework.framework;
 
@@ -14,13 +14,13 @@ public class WebApplication
     private readonly int _port;
     private readonly HttpListener _listener;
     private readonly HttpBodySerializerChain _serializer;
-    private readonly RadixTree _router;
+    private readonly RadixTreeRouter _router;
     private readonly ExceptionHandlerChain? _exceptionHandler;
     private readonly List<Type> _registeredTypes;
     private readonly List<Type> _controllerTypes;
     private readonly IIoCContainer _ioCContainer;
 
-    public WebApplication(int port, HttpListener listener, RadixTree router,
+    public WebApplication(int port, HttpListener listener, RadixTreeRouter router,
         HttpBodySerializerChain serializer,
         ExceptionHandlerChain? exceptionHandler, List<Type> registeredTypes, List<Type> controllerTypes,
         IIoCContainer ioCContainer)
@@ -179,7 +179,7 @@ public class WebApplication
             _builtinExceptionHandlers.AddRange(_exceptionHandlers);
 
             return new WebApplication(_port, listener,
-                new RadixTree(), new HttpBodySerializerChain(_builtinSerializers),
+                new RadixTreeRouter(), new HttpBodySerializerChain(_builtinSerializers),
                 new ExceptionHandlerChain(_builtinExceptionHandlers), _registeredTypes,
                 _controllerTypes, _ioc);
         }

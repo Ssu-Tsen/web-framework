@@ -1,10 +1,10 @@
 using System.Net;
 using System.Text.RegularExpressions;
-using c6_boss_web_framework.app.data_structure;
 using c6_boss_web_framework.app.view_models;
 using c6_boss_web_framework.framework;
 using c6_boss_web_framework.framework.exceptions;
 using c6_boss_web_framework.framework.requests;
+using c6_boss_web_framework.framework.routers;
 using c6_boss_web_framework.requests;
 
 // using System.Web.Http;
@@ -19,7 +19,15 @@ public class UserController(UserSystem userSystem) : Controller
 
     private readonly Dictionary<int, string> _userIdToToken = new();
 
-    public async Task<IResponseEntity> Login(HttpListenerRequest request,
+    public override void Routes(RadixTreeRouter router)
+    {
+        router.Post("/api/users/login", Login);
+        router.Post("/api/users", Register);
+        router.Patch("/api/users/{userId}", Rename);
+        router.Get("/api/users", QueryUsers);
+    }
+
+    private async Task<IResponseEntity> Login(HttpListenerRequest request,
         Dictionary<string, string> parameters)
     {
         var loginRequest = await request.ReadBodyAsObject<LoginRequest>();
@@ -46,7 +54,7 @@ public class UserController(UserSystem userSystem) : Controller
         return token;
     }
 
-    public async Task<IResponseEntity> Register(HttpListenerRequest request, Dictionary<string, string> parameters)
+    private async Task<IResponseEntity> Register(HttpListenerRequest request, Dictionary<string, string> parameters)
     {
         var registerRequest = await request.ReadBodyAsObject<RegisterRequest>();
 
@@ -58,7 +66,7 @@ public class UserController(UserSystem userSystem) : Controller
         return response;
     }
 
-    public async Task<IResponseEntity> Rename(HttpListenerRequest request, Dictionary<string, string> parameters)
+    private async Task<IResponseEntity> Rename(HttpListenerRequest request, Dictionary<string, string> parameters)
     {
         var bearerToken = request.Headers["Authorization"];
         var userId = int.Parse(parameters["userId"]);
@@ -75,16 +83,16 @@ public class UserController(UserSystem userSystem) : Controller
     }
 
 
-    public async Task<IResponseEntity> QueryUsers(HttpListenerRequest request, Dictionary<string, string> parameters)
+    private Task<IResponseEntity> QueryUsers(HttpListenerRequest request, Dictionary<string, string> parameters)
     {
         ValidateBearerToken(request.Headers["Authorization"]);
         var queryParams = request.QueryString;
         var members = userSystem.Query(queryParams["keyword"]);
-        return new ResponseEntity
+        return Task.FromResult<IResponseEntity>(new ResponseEntity
         {
             StatusCode = HttpStatusCode.OK,
             Body = members.Select(member => UserResponse.ToViewModel(member, null)).ToList()
-        };
+        });
     }
 
     private static void ValidateBearerToken(string? authorizationHeader)
@@ -92,15 +100,6 @@ public class UserController(UserSystem userSystem) : Controller
         if (string.IsNullOrEmpty(authorizationHeader) || !BearerTokenRegex.IsMatch(authorizationHeader))
         {
             throw new UnauthorizedException("Can't authenticate who you are.");
-            // TODO: throw new HttpResponseException(HttpStatusCode.Unauthorized, "Invalid token.");
         }
-    }
-
-    public override void Routes(RadixTree router)
-    {
-        router.Post("/api/users/login", Login);
-        router.Post("/api/users", Register);
-        router.Patch("/api/users/{userId}", Rename);
-        router.Get("/api/users", QueryUsers);
     }
 }

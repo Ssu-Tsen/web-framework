@@ -20,26 +20,6 @@ public class ExceptionHandlerChain(List<ExceptionHandler> handlers)
 
 public abstract class ExceptionHandler
 {
-    public static ExceptionHandler? CreateHandlerChain() // TODO: 這段不知放哪比較好
-    {
-        var handlerTypes = Assembly.GetExecutingAssembly()
-            .GetTypes()
-            .Where(t => t.IsSubclassOf(typeof(ExceptionHandler)) && !t.IsAbstract)
-            // .OrderBy(t => t.Name) // 可以根據需要進行排序
-            .ToList();
-
-        ExceptionHandler? next = null;
-
-        // 反向遍歷，因為我們要從最後一個開始鏈接
-        for (int i = handlerTypes.Count - 1; i >= 0; i--)
-        {
-            var type = handlerTypes[i];
-            next = (ExceptionHandler)Activator.CreateInstance(type, [next])!;
-        }
-
-        return next;
-    }
-
     public abstract bool IsResponsible(Exception e);
 
     public async void HandleException(Exception e, HttpListenerResponse response)
