@@ -19,7 +19,7 @@ public class UserController(UserSystem userSystem) : Controller
 
     private readonly Dictionary<int, string> _userIdToToken = new();
 
-    public override void Routes(RadixTreeRouter router)
+    public override void Routes(IRouter router)
     {
         router.Post("/api/users/login", Login);
         router.Post("/api/users", Register);
